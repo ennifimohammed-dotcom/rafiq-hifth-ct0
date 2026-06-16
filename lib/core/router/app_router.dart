@@ -4,17 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../providers/app_providers.dart';
-import '../screens/attendance/attendance_screen.dart';
-import '../screens/auth/login_screen.dart';
-import '../screens/dashboard/dashboard_screen.dart';
-import '../screens/public/public_report_screen.dart';
-import '../screens/reports/reports_screen.dart';
-import '../screens/sessions/add_session_screen.dart';
-import '../screens/share/share_screen.dart';
-import '../screens/students/student_detail_screen.dart';
-import '../screens/students/student_form_screen.dart';
-import '../screens/students/students_list_screen.dart';
+import '../../presentation/providers/app_providers.dart';
+import '../../presentation/screens/attendance/attendance_screen.dart';
+import '../../presentation/screens/auth/login_screen.dart';
+import '../../presentation/screens/dashboard/dashboard_screen.dart';
+import '../../presentation/screens/public/public_report_screen.dart';
+import '../../presentation/screens/reports/reports_screen.dart';
+import '../../presentation/screens/sessions/add_session_screen.dart';
+import '../../presentation/screens/share/share_screen.dart';
+import '../../presentation/screens/students/student_detail_screen.dart';
+import '../../presentation/screens/students/student_form_screen.dart';
+import '../../presentation/screens/students/students_list_screen.dart';
 
 // ---------------------------------------------------------------------------
 // Refresh notifier: bridges auth stream → GoRouter refresh

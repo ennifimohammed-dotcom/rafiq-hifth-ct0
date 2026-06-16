@@ -54,8 +54,8 @@ class QuranTeacherApp extends ConsumerWidget {
         ],
 
         // Theme
-        theme: AppTheme.light(),
-        darkTheme: AppTheme.dark(),
+        theme: AppTheme.light,
+        darkTheme: AppTheme.dark,
         themeMode: ThemeMode.system,
 
         // Meta

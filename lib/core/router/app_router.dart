@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../presentation/providers/app_providers.dart';
 import '../../presentation/screens/attendance/attendance_screen.dart';
 import '../../presentation/screens/auth/login_screen.dart';
+import '../../presentation/screens/auth/register_screen.dart';
 import '../../presentation/screens/dashboard/dashboard_screen.dart';
 import '../../presentation/screens/public/public_report_screen.dart';
 import '../../presentation/screens/reports/reports_screen.dart';
@@ -57,6 +58,8 @@ final routerProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       // Public report pages are always accessible.
       if (state.matchedLocation.startsWith('/report/')) return null;
+      // Register page is always accessible.
+      if (state.matchedLocation == '/register') return null;
 
       final isLoggedIn = authRepo.currentTeacherId != null;
       final isLoginPage = state.matchedLocation == '/login';
@@ -74,6 +77,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/login',
         parentNavigatorKey: rootKey,
         builder: (context, state) => const LoginScreen(),
+      ),
+
+      GoRoute(
+        path: '/register',
+        parentNavigatorKey: rootKey,
+        builder: (context, state) => const RegisterScreen(),
       ),
 
       // ----------------------------------------------------------------

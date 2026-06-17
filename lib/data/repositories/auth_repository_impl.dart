@@ -15,12 +15,18 @@ class AuthRepositoryImpl implements AuthRepository {
   String? get currentTeacherId => _auth.currentUser?.uid;
 
   @override
-  Future<void> signIn({required String email, required String password}) {
-    return _auth.signInWithEmailAndPassword(
-      email: email.trim(),
-      password: password,
-    );
-  }
+  Future<void> signIn({required String email, required String password}) =>
+      _auth.signInWithEmailAndPassword(
+        email: email.trim(),
+        password: password,
+      );
+
+  @override
+  Future<void> register({required String email, required String password}) =>
+      _auth.createUserWithEmailAndPassword(
+        email: email.trim(),
+        password: password,
+      );
 
   @override
   Future<void> signOut() => _auth.signOut();

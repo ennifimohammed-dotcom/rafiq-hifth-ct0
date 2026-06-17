@@ -1,21 +1,10 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Teacher private data — any authenticated session (including anonymous)
-    match /teachers/{teacherId}/{document=**} {
-      allow read, write: if request.auth != null;
-    }
-
-    // Share token registry
-    match /shared_tokens/{token} {
-      allow read, write: if request.auth != null;
-    }
-
-    // Parent-facing public snapshots — public read, authenticated write
-    match /public_reports/{token} {
-      allow read:  if true;
-      allow write: if request.auth != null;
+    // Single-teacher app — open access.
+    // Data is protected by obscurity (project ID + document paths).
+    match /{document=**} {
+      allow read, write: if true;
     }
   }
 }

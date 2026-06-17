@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -13,13 +12,13 @@ class RegisterScreen extends ConsumerStatefulWidget {
 }
 
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
-  final _formKey        = GlobalKey<FormState>();
-  final _emailCtrl      = TextEditingController();
-  final _passwordCtrl   = TextEditingController();
-  final _confirmCtrl    = TextEditingController();
-  bool _loading         = false;
-  bool _obscure         = true;
-  bool _obscureConfirm  = true;
+  final _formKey       = GlobalKey<FormState>();
+  final _emailCtrl     = TextEditingController();
+  final _passwordCtrl  = TextEditingController();
+  final _confirmCtrl   = TextEditingController();
+  bool _loading        = false;
+  bool _obscure        = true;
+  bool _obscureConfirm = true;
 
   @override
   void dispose() {
@@ -37,22 +36,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             email: _emailCtrl.text.trim(),
             password: _passwordCtrl.text,
           );
-      // GoRouter redirect handles navigation on auth state change.
-    } on FirebaseAuthException catch (e) {
+      // GoRouter redirect handles navigation automatically.
+    } catch (e) {
       if (!mounted) return;
-      final message = switch (e.code) {
-        'email-already-in-use' => 'هذا البريد مسجّل مسبقاً، سجّل الدخول',
-        'invalid-email'        => 'صيغة البريد الإلكتروني غير صحيحة',
-        'weak-password'        => 'كلمة المرور ضعيفة جداً (6 أحرف على الأقل)',
-        'network-request-failed' => 'تحقق من اتصال الإنترنت',
-        _                      => 'حدث خطأ أثناء إنشاء الحساب',
-      };
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(message)));
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('حدث خطأ غير متوقع')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(e.toString().replaceAll('Exception: ', '')),
+      ));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -75,7 +64,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // ── Icon ─────────────────────────────────────────
+                    const SizedBox(height: 16),
                     Center(
                       child: Container(
                         width: 72, height: 72,
@@ -88,22 +77,21 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       ),
                     ),
                     const SizedBox(height: 14),
-                    Text(
-                      'حساب معلم جديد',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.w800),
-                    ),
+                    const Text('حساب معلم جديد',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.w800)),
                     const SizedBox(height: 6),
                     Text(
-                      'أدخل بريدك الإلكتروني وكلمة مرور لإنشاء حسابك',
+                      'أدخل بريدك وكلمة مرور لإنشاء حسابك المحلي',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                          fontSize: 13, color: scheme.onSurfaceVariant),
+                          fontSize: 13,
+                          color: scheme.onSurfaceVariant),
                     ),
                     const SizedBox(height: 32),
 
-                    // ── Email ─────────────────────────────────────────
+                    // Email
                     TextFormField(
                       controller: _emailCtrl,
                       keyboardType: TextInputType.emailAddress,
@@ -126,7 +114,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ),
                     const SizedBox(height: 14),
 
-                    // ── Password ──────────────────────────────────────
+                    // Password
                     TextFormField(
                       controller: _passwordCtrl,
                       obscureText: _obscure,
@@ -148,14 +136,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           return 'كلمة المرور مطلوبة';
                         }
                         if (v.length < 6) {
-                          return 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
+                          return 'كلمة المرور 6 أحرف على الأقل';
                         }
                         return null;
                       },
                     ),
                     const SizedBox(height: 14),
 
-                    // ── Confirm Password ──────────────────────────────
+                    // Confirm password
                     TextFormField(
                       controller: _confirmCtrl,
                       obscureText: _obscureConfirm,
@@ -168,33 +156,30 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           icon: Icon(_obscureConfirm
                               ? Icons.visibility_outlined
                               : Icons.visibility_off_outlined),
-                          onPressed: () =>
-                              setState(() => _obscureConfirm = !_obscureConfirm),
+                          onPressed: () => setState(
+                              () => _obscureConfirm = !_obscureConfirm),
                         ),
                       ),
-                      validator: (v) {
-                        if (v != _passwordCtrl.text) {
-                          return 'كلمتا المرور غير متطابقتين';
-                        }
-                        return null;
-                      },
+                      validator: (v) => v != _passwordCtrl.text
+                          ? 'كلمتا المرور غير متطابقتين'
+                          : null,
                       onFieldSubmitted: (_) => _register(),
                     ),
                     const SizedBox(height: 28),
 
-                    // ── Register button ───────────────────────────────
+                    // Register button
                     FilledButton(
                       onPressed: _loading ? null : _register,
                       child: _loading
                           ? const SizedBox(
                               width: 22, height: 22,
                               child: CircularProgressIndicator(
-                                  strokeWidth: 2.4, color: Colors.white))
+                                  strokeWidth: 2.4,
+                                  color: Colors.white))
                           : const Text('إنشاء الحساب'),
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 12),
 
-                    // ── Back to login ─────────────────────────────────
                     TextButton(
                       onPressed: () => context.pop(),
                       child: const Text('لديّ حساب — تسجيل الدخول'),

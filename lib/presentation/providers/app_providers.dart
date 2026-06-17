@@ -46,10 +46,7 @@ final firestoreProvider =
 // ---------------------------------------------------------------------------
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
-  return AuthRepositoryImpl(
-    ref.watch(firebaseAuthProvider),
-    ref.watch(sharedPreferencesProvider),
-  );
+  return AuthRepositoryImpl(ref.watch(sharedPreferencesProvider));
 });
 
 final teacherIdProvider = StreamProvider<String?>(

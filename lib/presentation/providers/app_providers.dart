@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../core/utils/analytics_utils.dart';
 import '../../data/repositories/attendance_repository_impl.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../data/repositories/firestore_paths.dart';
@@ -22,11 +24,16 @@ import '../../domain/repositories/note_repository.dart';
 import '../../domain/repositories/session_repository.dart';
 import '../../domain/repositories/share_repository.dart';
 import '../../domain/repositories/student_repository.dart';
-import '../../core/utils/analytics_utils.dart';
 
 // ---------------------------------------------------------------------------
-// Firebase singletons
+// Infrastructure singletons
 // ---------------------------------------------------------------------------
+
+/// Overridden in main.dart with the initialised SharedPreferences instance.
+final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
+  throw UnimplementedError(
+      'sharedPreferencesProvider must be overridden in main.dart');
+});
 
 final firebaseAuthProvider =
     Provider<FirebaseAuth>((ref) => FirebaseAuth.instance);
@@ -35,17 +42,21 @@ final firestoreProvider =
     Provider<FirebaseFirestore>((ref) => FirebaseFirestore.instance);
 
 // ---------------------------------------------------------------------------
-// Auth
+// Auth  (local credentials + anonymous Firebase session)
 // ---------------------------------------------------------------------------
 
-final authRepositoryProvider = Provider<AuthRepository>(
-    (ref) => AuthRepositoryImpl(ref.watch(firebaseAuthProvider)));
+final authRepositoryProvider = Provider<AuthRepository>((ref) {
+  return AuthRepositoryImpl(
+    ref.watch(firebaseAuthProvider),
+    ref.watch(sharedPreferencesProvider),
+  );
+});
 
 final teacherIdProvider = StreamProvider<String?>(
     (ref) => ref.watch(authRepositoryProvider).watchTeacherId());
 
 // ---------------------------------------------------------------------------
-// Data layer wiring
+// Firestore path resolver
 // ---------------------------------------------------------------------------
 
 final firestorePathsProvider = Provider<FirestorePaths>((ref) {
@@ -54,6 +65,10 @@ final firestorePathsProvider = Provider<FirestorePaths>((ref) {
       '_unauthenticated_';
   return FirestorePaths(ref.watch(firestoreProvider), uid);
 });
+
+// ---------------------------------------------------------------------------
+// Repository providers
+// ---------------------------------------------------------------------------
 
 final studentRepositoryProvider = Provider<StudentRepository>(
     (ref) => StudentRepositoryImpl(ref.watch(firestorePathsProvider)));
@@ -138,7 +153,7 @@ final studentNotesProvider = StreamProvider.family<List<Note>, String>(
         ref.watch(noteRepositoryProvider).watchNotes(studentId));
 
 // ---------------------------------------------------------------------------
-// Public report (parent view)
+// Public report (parent view — no auth required)
 // ---------------------------------------------------------------------------
 
 final publicReportProvider = FutureProvider.family<PublicReport?, String>(

@@ -12,6 +12,11 @@ class SessionRepositoryImpl implements SessionRepository {
 
   SessionRepositoryImpl(this._paths);
 
+  List<QuranSession> _sortByDate(List<QuranSession> sessions) {
+    sessions.sort((a, b) => b.sessionDate.compareTo(a.sessionDate));
+    return sessions;
+  }
+
   @override
   Stream<List<QuranSession>> watchSessions(String studentId) {
     return _paths
@@ -19,7 +24,8 @@ class SessionRepositoryImpl implements SessionRepository {
         .orderBy('timestamp', descending: true)
         .limit(300)
         .snapshots()
-        .map((snap) => snap.docs.map(SessionMapper.fromDoc).toList());
+        .map((snap) =>
+            _sortByDate(snap.docs.map(SessionMapper.fromDoc).toList()));
   }
 
   @override
@@ -30,30 +36,38 @@ class SessionRepositoryImpl implements SessionRepository {
         .orderBy('timestamp', descending: true)
         .limit(limit)
         .get();
-    return snap.docs.map(SessionMapper.fromDoc).toList();
+    return _sortByDate(snap.docs.map(SessionMapper.fromDoc).toList());
   }
 
   @override
   Future<void> addSession(QuranSession session) async {
-    final batch = _paths.db.batch();
+    final batch      = _paths.db.batch();
     final sessionRef = _paths.sessions(session.studentId).doc();
+
     batch.set(sessionRef,
         SessionMapper.toMap(session, teacherId: _paths.teacherId));
 
-    if (session.type == SessionType.memorization) {
+    // Update student position only for surahAyah memorization sessions.
+    if (session.type == SessionType.memorization &&
+        session.trackingMode == TrackingMode.surahAyah) {
       batch.update(_paths.student(session.studentId), {
-        'currentSurah': session.surah,
+        'currentSurah':    session.surah,
         'currentAyahStart': session.ayahStart,
-        'currentAyahEnd': session.ayahEnd,
-        'totalAyahsMemorized': FieldValue.increment(session.ayahCount),
+        'currentAyahEnd':   session.ayahEnd,
+        'totalAyahsMemorized':
+            FieldValue.increment(session.ayahCount),
       });
     }
+
     await batch.commit();
 
-    if (session.type == SessionType.memorization) {
-      // Recompute the percentage from the authoritative counter.
-      final doc = await _paths.student(session.studentId).get();
-      final total = (doc.data()?['totalAyahsMemorized'] ?? 0) as int;
+    // Recompute progress percentage for surahAyah mode only.
+    if (session.type == SessionType.memorization &&
+        session.trackingMode == TrackingMode.surahAyah) {
+      final doc =
+          await _paths.student(session.studentId).get();
+      final total =
+          (doc.data()?['totalAyahsMemorized'] ?? 0) as int;
       final pct = (total / AppConstants.totalQuranAyahs * 100)
           .clamp(0.0, 100.0)
           .toDouble();
@@ -70,7 +84,7 @@ class SessionRepositoryImpl implements SessionRepository {
 
   @override
   Stream<int> watchSessionsTodayCount() {
-    final now = DateTime.now();
+    final now        = DateTime.now();
     final startOfDay = DateTime(now.year, now.month, now.day);
     return _paths.db
         .collectionGroup('sessions')

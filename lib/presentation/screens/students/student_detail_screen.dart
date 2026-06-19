@@ -14,6 +14,7 @@ import '../../providers/app_providers.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/rating_chip.dart';
 import '../../widgets/section_card.dart';
+import '../../widgets/weekly_attendance_grid.dart';
 import '../../widgets/weekly_progress_chart.dart';
 
 /// Full student profile: overview, sessions, attendance, notes.
@@ -445,8 +446,17 @@ class _SessionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final surah = QuranData.byNumber(session.surah);
     final isMemorization = session.type == SessionType.memorization;
+    final isSurahMode = session.trackingMode == TrackingMode.surahAyah;
+
+    // Position label depends on tracking mode.
+    final positionLabel = isSurahMode
+        ? () {
+            final surah = QuranData.byNumber(session.surah);
+            return '${surah.displayName} • الآية ${session.ayahStart} - ${session.ayahEnd} (${session.ayahCount} آية)';
+          }()
+        : 'الحزب ${session.startHizb} الثمن ${session.startEighth}'
+          ' — الحزب ${session.endHizb} الثمن ${session.endEighth}';
 
     return SectionCard(
       padding: const EdgeInsets.all(14),
@@ -479,6 +489,15 @@ class _SessionCard extends StatelessWidget {
               const SizedBox(width: 8),
               RatingChip(rating: session.rating),
               const Spacer(),
+              // Session date badge
+              Text(
+                Formatters.date(session.sessionDate),
+                style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: scheme.primary),
+              ),
+              const SizedBox(width: 4),
               IconButton(
                 visualDensity: VisualDensity.compact,
                 icon: Icon(Icons.delete_outline,
@@ -489,7 +508,7 @@ class _SessionCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            '${surah.displayName} • الآية ${session.ayahStart} - ${session.ayahEnd} (${session.ayahCount} آية)',
+            positionLabel,
             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
           ),
           if (session.mistakes.isNotEmpty) ...[
@@ -568,6 +587,7 @@ class _AttendanceTab extends ConsumerWidget {
         return ListView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
           children: [
+            // Summary stats
             SectionCard(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -596,10 +616,11 @@ class _AttendanceTab extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 12),
-            for (final record in records) ...[
-              _AttendanceTile(record: record),
-              const SizedBox(height: 8),
-            ],
+            // Weekly attendance grid
+            SectionCard(
+              padding: const EdgeInsets.all(12),
+              child: WeeklyAttendanceGrid(records: records),
+            ),
           ],
         );
       },

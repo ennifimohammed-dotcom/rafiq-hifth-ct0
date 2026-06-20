@@ -628,56 +628,6 @@ class _AttendanceTab extends ConsumerWidget {
   }
 }
 
-class _AttendanceTile extends StatelessWidget {
-  final AttendanceRecord record;
-
-  const _AttendanceTile({required this.record});
-
-  @override
-  Widget build(BuildContext context) {
-    final status = record.status;
-    final Color color;
-    final IconData icon;
-    switch (status) {
-      case AttendanceStatus.present:
-        color = const Color(0xFF1B7A4A);
-        icon = Icons.check_circle_outline_rounded;
-        break;
-      case AttendanceStatus.lateArrival:
-        color = const Color(0xFFC9A24B);
-        icon = Icons.schedule_rounded;
-        break;
-      case AttendanceStatus.absent:
-        color = const Color(0xFFC0392B);
-        icon = Icons.cancel_outlined;
-        break;
-    }
-    return SectionCard(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      child: Row(
-        children: [
-          Icon(icon, color: color, size: 22),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              '${Formatters.dayName(record.date)} ${Formatters.date(record.date)}',
-              style: const TextStyle(fontSize: 14),
-            ),
-          ),
-          Text(
-            status.labelAr,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: color,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 // ---------------------------------------------------------------------------
 // Notes tab
 // ---------------------------------------------------------------------------
